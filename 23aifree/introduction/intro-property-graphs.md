@@ -4,7 +4,7 @@
 
 This workshop focuses on working with property graphs in Oracle AI Database. You will create a graph from two tables, one containing bank account information, and another containing bank transactions information. You will then run graph pattern queries in SQL on this graph. You will find circular payment chains, multi-hop paths between accounts, and more.
 
-Estimated Time: 30 minutes
+Estimated Time: 65 minutes
 
 ### About Product/Technology - Property Graphs on 26ai
 
@@ -24,10 +24,10 @@ In this lab, you will:
 ## Learn More
 
 * [Oracle Property Graph](https://docs.oracle.com/en/database/oracle/property-graph/index.html)
-* [SQL Property Graph syntax in Oracle AI Database](https://docs.oracle.com/en/database/oracle/property-graph/25.4/spgdg/sql-ddl-statements-property-graphs.html)
+* [SQL Property Graph syntax in Oracle AI Database](https://docs.oracle.com/en/database/oracle/property-graph/26.4/spgdg/sql-ddl-statements-property-graphs.html)
 
 ## Acknowledgements
 
 * **Author** - Kaylien Phan, Thea Lazarova, William Masdon
 * **Contributors** - Melliyal Annamalai, Jayant Sharma, Ramu Murakami Gutierrez, Rahul Tasker
-* **Last Updated By/Date** - Denise Myrick, November 2025
+* **Last Updated By/Date** - Denise Myrick, October 2026

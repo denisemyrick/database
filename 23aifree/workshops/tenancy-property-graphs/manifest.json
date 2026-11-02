@@ -26,7 +26,7 @@
       },
       {
         "title": "Lab 2: Create a Graph User",
-        "description": "Create a simple graph and learn how to navigate the user interface.",
+        "description": "Creates a graph user and assign privileges",
         "filename": "https://livelabs.oracle.com/cdn/spatial-graph/adb-graph/getting-started-with-graph-studio/create-user/create-user.md"
       },
        {

@@ -11,8 +11,9 @@ Estimated Time: 30 minutes.
 
 Learn how to:
 
-- Use APEX and SQL/PGQ to define and query a property graph.
-​
+- Import and run a notebook that queries `BANK_GRAPH` with SQL/PGQ.
+- Load the graph into memory and run graph analytics on account relationships.​
+
 ### Prerequisites
 
 This lab assumes:
@@ -21,7 +22,7 @@ This lab assumes:
 - A property graph, named `bank_graph` has been created.
 
 <!-- <if type="livelabs">
-Watch the video below for a quick walk-through of the lab. 
+Watch the video below for a quick walk-through of the lab.
 [Change password](videohub:1_ovgflc5c)
 </if> -->
 
@@ -34,7 +35,7 @@ Watch the video below for a quick walk-through of the lab.
  1. Click the **Notebook** icon. Import a notebook by clicking on the notebook icon on the left, and then clicking on the **Import** icon on the far right.
 
     ![Click the notebook icon and import the notebook.](images/import-notebook-button.png " ")
-    
+
      Select or drag and drop the notebook and click **Import**.
 
     ![Select the notebook to import and click on Import.](images/task3step2-v1.png " ")
@@ -47,24 +48,24 @@ In this task we will run queries using SQL/PGQ's GRAPH_TABLE operator, MATCH cla
 
 A common query in analyzing money flows is to see if there is a sequence of transfers that connect one source account to a destination account. We'll be demonstrating that sequence of transfers in standard SQL.
 
->**Note**: We created the graph using the Graph Studio modeler. However, in the following paragraph, we provide the **CREATE PROPERTY GRAPH SQL statement**, which you can use to create a graph anywhere SQL queries are supported.
-
-​    ```
-    %sql
-    CREATE PROPERTY GRAPH BANK_GRAPH
-    VERTEX TABLES (
-        BANK_ACCOUNTS
-        KEY (ID)
-        PROPERTIES (ID, Name, Balance)
-    )
-    EDGE TABLES (
-        BANK_TRANSFERS
-        KEY (TXN_ID)
-        SOURCE KEY (src_acct_id) REFERENCES BANK_ACCOUNTS(ID)
-        DESTINATION KEY (dst_acct_id) REFERENCES BANK_ACCOUNTS(ID)
-        PROPERTIES (src_acct_id, dst_acct_id, amount)
-        )
-    ```
+> **Note:** We created the graph using the Graph Studio modeler. This SQL statement shows how to create it wherever SQL queries are supported.
+>
+> ```sql
+> %sql
+> CREATE PROPERTY GRAPH BANK_GRAPH
+> VERTEX TABLES (
+>     BANK_ACCOUNTS
+>     KEY (ID)
+>     PROPERTIES (ID, Name, Balance)
+> )
+> EDGE TABLES (
+>     BANK_TRANSFERS
+>     KEY (TXN_ID)
+>     SOURCE KEY (src_acct_id) REFERENCES BANK_ACCOUNTS(ID)
+>     DESTINATION KEY (dst_acct_id) REFERENCES BANK_ACCOUNTS(ID)
+>     PROPERTIES (src_acct_id, dst_acct_id, amount)
+> )
+> ```
 
 1. Let's use SQL to find the **top 10 accounts by number of transfers** the account has received. Run the paragraph with the following query.
 
@@ -86,9 +87,9 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    SELECT acct_id, COUNT(1) AS Num_In_Middle 
-    FROM graph_table ( BANK_GRAPH 
-        MATCH (src) - [IS BANK_TRANSFERS] -> (via) - [IS BANK_TRANSFERS] -> (dst) 
+    SELECT acct_id, COUNT(1) AS Num_In_Middle
+    FROM graph_table ( BANK_GRAPH
+        MATCH (src) - [IS BANK_TRANSFERS] -> (via) - [IS BANK_TRANSFERS] -> (dst)
         COLUMNS ( via.id AS acct_id )
     ) GROUP BY acct_id ORDER BY Num_In_Middle DESC FETCH FIRST 10 ROWS ONLY;
     </copy>
@@ -97,13 +98,13 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ![Top 10 accounts](images/9-num-conduits.png)
 ​
 3. Note that account **387** shows up again, so let's list **accounts that received a transfer from account 387 in 1, 2, or 3 hops**.
-    
+
     ```
     <copy>
-    SELECT account_id1, account_id2 
+    SELECT account_id1, account_id2
     FROM graph_table(BANK_GRAPH
-        MATCH (v1)-[IS BANK_TRANSFERS]->{1,3}(v2) 
-        WHERE v1.id = 387 
+        MATCH (v1)-[IS BANK_TRANSFERS]->{1,3}(v2)
+        WHERE v1.id = 387
         COLUMNS (v1.id AS account_id1, v2.id AS account_id2)
     );
     </copy>
@@ -114,13 +115,13 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 4. We looked at accounts with the most incoming transfers and those which were simply conduits. Now let's query the graph to determine if there are any circular payment chains, i.e. a sequence of transfers that start and end at the same account. First let's check if there are **any 3-hop (triangles) transfers that start and end at the same account**.
 
     This query lists such accounts, ordered by the number of triangles that start and end with that account.
-    
+
     ```
     <copy>
-    SELECT acct_id, COUNT(1) AS Num_Triangles 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{3} (src) 
-        COLUMNS (src.id AS acct_id) 
+    SELECT acct_id, COUNT(1) AS Num_Triangles
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{3} (src)
+        COLUMNS (src.id AS acct_id)
     ) GROUP BY acct_id ORDER BY Num_Triangles DESC;
     </copy>
     ```
@@ -131,10 +132,10 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    SELECT acct_id, COUNT(1) AS Num_4hop_Chains 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{4} (src) 
-        COLUMNS (src.id AS acct_id) 
+    SELECT acct_id, COUNT(1) AS Num_4hop_Chains
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{4} (src)
+        COLUMNS (src.id AS acct_id)
     ) GROUP BY acct_id ORDER BY Num_4hop_Chains DESC;
     </copy>
     ```
@@ -144,27 +145,27 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 6. Lastly, check if there are **any 5-hop transfers that start and end at the same account** by just changing the number of hops to 5.
 
     Note that although we are looking for longer chains we reuse the same MATCH pattern with a modified parameter for the desired number of hops. This compactness and expressiveness is a primary benefit of the SQL syntax for graphs in Oracle AI Database.
-   
+
     ```
     <copy>
-   SELECT acct_id, COUNT(1) AS Num_5hop_Chains 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{5} (src) 
-        COLUMNS (src.id AS acct_id) 
+   SELECT acct_id, COUNT(1) AS Num_5hop_Chains
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{5} (src)
+        COLUMNS (src.id AS acct_id)
     ) GROUP BY acct_id ORDER BY Num_5hop_Chains DESC;
     </copy>
-    ```  
-    
+    ```
+
     ![5 hop transfers](images/13-num-5hop-chains.png)
 
-7. Now that we know there are 3, 4, and 5-hop cycles, let's list **some (any 10) accounts that had these circular payment chains**. 
-   
+7. Now that we know there are 3, 4, and 5-hop cycles, let's list **some (any 10) accounts that had these circular payment chains**.
+
     ```
     <copy>
-    SELECT DISTINCT(account_id) 
+    SELECT DISTINCT(account_id)
     FROM GRAPH_TABLE(BANK_GRAPH
        MATCH (v1)-[IS BANK_TRANSFERS]->{3,5}(v1)
-        COLUMNS (v1.id AS account_id)  
+        COLUMNS (v1.id AS account_id)
     ) FETCH FIRST 10 ROWS ONLY;
     </copy>
     ```
@@ -172,28 +173,28 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ![Any 10 accounts that have had circular payment chains](images/13-num-3to5hop-chains.png)
 ​
 8.  Let's list the top 10 accounts that have **circular payment chains of 3 to 5 hops** in descending order of the number of such chains.
-   
+
     ```
     <copy>
-    SELECT DISTINCT(account_id), COUNT(1) AS Num_Cycles 
+    SELECT DISTINCT(account_id), COUNT(1) AS Num_Cycles
     FROM graph_table(BANK_GRAPH
-        MATCH (v1)-[IS BANK_TRANSFERS]->{3, 5}(v1) 
-        COLUMNS (v1.id AS account_id) 
+        MATCH (v1)-[IS BANK_TRANSFERS]->{3, 5}(v1)
+        COLUMNS (v1.id AS account_id)
     ) GROUP BY account_id ORDER BY Num_Cycles DESC FETCH FIRST 10 ROWS ONLY;
     </copy>
     ```
 ​
     ![Top ten accounts that had circular payment chains](images/14-num-cycles.png)
 ​
-    Note that accounts **135**, **934** and **387** are the ones involved in most of the 3 to 5 hops circular payment chains. 
+    Note that accounts **135**, **934** and **387** are the ones involved in most of the 3 to 5 hops circular payment chains.
 ​
 9. Any insert, update, or delete on the underlying tables will also be reflected in the property graph.
 
     Now, let's **insert some more data into BANK\_TRANSFERS**. We will see that when rows are inserted in to the BANK\_TRANSFERS table, the BANK\_GRAPH is updated with corresponding edges.
-   
+
     ```
     <copy>
-    INSERT INTO bank_transfers VALUES 
+    INSERT INTO bank_transfers VALUES
     (5002, 39, 934, null, 1000),
     (5003, 39, 135, null, 1000),
     (5004, 40, 135, null, 1000),
@@ -206,12 +207,12 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ![Inserting additional data to BANK_TRANSFERS](images/15-first-insert.png)
 
 10. Re-run the **top 10 query** to see if there are any changes after inserting rows in BANK\_TRANSFERS.
-   
+
     ```
     <copy>
-    SELECT acct_id, count(1) AS Num_Transfers 
-    FROM GRAPH_TABLE ( bank_graph 
-    MATCH (src) - [is BANK_TRANSFERS] -> (dst) 
+    SELECT acct_id, count(1) AS Num_Transfers
+    FROM GRAPH_TABLE ( bank_graph
+    MATCH (src) - [is BANK_TRANSFERS] -> (dst)
     COLUMNS ( dst.id as acct_id )
     ) GROUP BY acct_id ORDER BY Num_Transfers DESC fetch first 10 rows only;
     </copy>
@@ -222,16 +223,16 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     Notice how accounts **135**, and **934** are now **ahead of 387**.
 ​
 11. In a previous query we saw that accounts 135 and 934 had a number of 4-hop circular payments chains. Let's check if account **39** had any.
-    
+
     ```
     <copy>
-    SELECT count(1) Num_4Hop_Cycles 
-    FROM graph_table(bank_graph 
-    MATCH (s)-[]->{4}(s) 
+    SELECT count(1) Num_4Hop_Cycles
+    FROM graph_table(bank_graph
+    MATCH (s)-[]->{4}(s)
     WHERE s.id = 39
     COLUMNS (1 as dummy) );
     </copy>
-    ```     
+    ```
 ​
    ​ ![Querying if account 39 had any 4-hop circular payment chains](images/17-num-4hop-cycles.png " ")
 
@@ -239,31 +240,31 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 ​
 12. Let’s **insert more transfers** which create some circular payment chains for account 39.
 
-    We will be adding transfers from accounts 599, 982, and 407 into account 39.
-   
+    We will be adding transfers from accounts 559, 982, and 407 into account 39.
+
     ```
     <copy>
-    INSERT INTO bank_transfers VALUES 
+    INSERT INTO bank_transfers VALUES
     (5008, 559, 39, null, 1000),
     (5009, 982, 39, null, 1000),
     (5010, 407, 39, null, 1000);
     </copy>
     ```
-  ​  
+  ​
     ![inserting more transfers](images/18-second-insert.png)
 ​
 13.  Re-run the previous query to see how the new inserts affect the results.
-   
+
     ```
     <copy>
-    SELECT count(1) Num_4Hop_Cycles 
-    FROM graph_table(bank_graph 
-    MATCH (s)-[]->{4}(s) 
+    SELECT count(1) Num_4Hop_Cycles
+    FROM graph_table(bank_graph
+    MATCH (s)-[]->{4}(s)
     WHERE s.id = 39
     COLUMNS (1 as dummy) );
     </copy>
     ```
-  ​  
+  ​
     ![rerun query again](images/19-num-4hop-cycles.png " ")
 
     Notice how we now have **five 4-hop circular payment chains** because the edges of BANK_GRAPH were updated when additional transfers were added to BANK\_TRANSFERS.
@@ -274,14 +275,14 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    SELECT s0, a1, a2, a3 
-    FROM graph_table(bank_graph 
+    SELECT s0, a1, a2, a3
+    FROM graph_table(bank_graph
     MATCH (s)-[]->(a)-[]->(b)-[]->(c)
-    WHERE s.id = 39 and c.id in (559, 982, 407) 
+    WHERE s.id = 39 and c.id in (559, 982, 407)
     COLUMNS (s.id as s0, a.id as a1, b.id as a2, c.id as a3) );
     </copy>
     ```
-    
+
     ![rerun query again](images/20-achart.png)
 
     Note that there are 2 chains from account **39** to account **407** and another 2 from **39** to **559**.
@@ -289,10 +290,10 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     So when we inserted a transfer from account **407** to account **39** that resulted in **two 4-hop chains**. The same occurs for account **559**. Hence we get **five new 4-hop circular payment chains**.
 
 15. Let's undo the changes and delete the newly inserted rows.
-   
+
     ```
     <copy>
-    DELETE FROM bank_transfers 
+    DELETE FROM bank_transfers
     WHERE txn_id IN (5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010);
     </copy>
     ```
@@ -316,7 +317,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
         print("Graph '"+ GRAPH_NAME + "' already loaded")
     </copy>
     ```
-    
+
     ​![load graph into memory](images/load-graph.png)
 
 17. Accounts **387** and **934** have a high number of transactions.
@@ -329,10 +330,10 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     select * from bank_accounts where id = 387;
     </copy>
     ```
-    
+
     ​![owner of account 387](images/owner-of-account387.png)
 
-    Looks like **Antonia Mclachlan** is the owner of this account.  
+    Looks like **Antonia Mclachlan** is the owner of this account.
 
 18. What about account 934?
 
@@ -344,10 +345,10 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     select * from bank_accounts where id = 934;
     </copy>
     ```
-    
+
     ​![owner of account 934](images/owner-of-account934.png)
 
-    The owner of account 934 is **Russell Rivera**.   
+    The owner of account 934 is **Russell Rivera**.
 
 19. Let’s look at the **circular transfers that originate and terminate at Russell Rivera's account**, and visualize the results.
 
@@ -356,16 +357,16 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ```
     <copy>
     %pgql-pgx
-    SELECT * 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{4} (src) 
+    SELECT *
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{4} (src)
         WHERE src.name = 'RUSSELL RIVERA'
         ONE ROW PER STEP ( v1, e1, v2 )
-        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id ) 
-    ) 
+        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id )
+    )
     </copy>
     ```
-    
+
     ​![4 hop visualization](images/4-hops.png)
 
     We see **three circular payment chains 4 hops** in length, that start and end in this account.
@@ -375,16 +376,16 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ```
     <copy>
     %pgql-pgx
-    SELECT * 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{5} (src) 
+    SELECT *
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{5} (src)
         WHERE src.name = 'RUSSELL RIVERA'
         ONE ROW PER STEP ( v1, e1, v2 )
-        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id ) 
-    ) 
+        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id )
+    )
     </copy>
     ```
-    
+
     ​![5 hop visualization](images/5-hops.png)
 
     **The number of circular payment chains that start and end in Russell Rivera's account makes it an account we should investigate further.**
@@ -403,7 +404,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     analyst.pagerank(graph);
     </copy>
     ```
-    
+
     ​![running pagerank](images/run-pagerank.png)
 
 22. Now let's list the PageRank values in descending order to find the accounts with high PageRank values. **A high PageRank value indicates that that account is important**, which in the context of BANK_GRAPH, a high number of transfers have flown through that account, or the account is connected to accounts with a high number of transfers flowing through them.
@@ -418,7 +419,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     order by pagerank desc;
     </copy>
     ```
-    
+
     ​![running pagerank results](images/run-pagerank-results.png)
 
     We see that **Russell Rivera is in the top 5**. So this metric also indicates that a large number of transactions flow through Russell Rivera's account.
@@ -431,16 +432,16 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     ```
     <copy>
     %pgql-pgx
-    SELECT * 
-    FROM graph_table (BANK_GRAPH 
-        MATCH (src) - []->{3} (dst) 
+    SELECT *
+    FROM graph_table (BANK_GRAPH
+        MATCH (src) - []->{3} (dst)
         WHERE src.name = 'ANTONIA MCLACHLAN'
-        ONE ROW PER STEP ( v1, e1, v2 ))
-        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id ) 
+        ONE ROW PER STEP ( v1, e1, v2 )
+        COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id )
     </copy>
     ```
-    
-    ​![visualize 3 hop payment chain](images/3-hop-payment.png) 
+
+    ​![visualize 3 hop payment chain](images/3-hop-payment.png)
 
     From this visualization we can quickly see **which accounts that are connected to Antonia Maclachlan also have a high PageRank value**.
 
@@ -458,7 +459,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     )
     </copy>
     ```
-    
+
     ​![running deepwalk](images/deepwalk.png)
 
 25. Now we will **train the DeepWalk model**. Run the following paragraph.
@@ -472,8 +473,8 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     print("DeepWalk model training completed in {:.4f} seconds".format(time.time() - start_ts))
     </copy>
     ```
-    
-    ​![training deepwalk model](images/train-deepwalk.png) 
+
+    ​![training deepwalk model](images/train-deepwalk.png)
 
 26. Let's get the **most similar nodes to account 934** with respect to transfer patterns.
 
@@ -485,7 +486,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     similars_934.print()
     </copy>
     ```
-    
+
     ​![running deepwalk for account 934](images/deepwalk934.png)
 
 27. Now we will take look at **similar nodes to account 387** with respect to transfer patterns.
@@ -498,25 +499,25 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     similars_387.print()
     </copy>
     ```
-    
-    ​![running deepwalk for account 387](images/deepwalk387.png) 
+
+    ​![running deepwalk for account 387](images/deepwalk387.png)
 
     We see that 135 shows up as the account closest to 934 and 387, in terms of the patterns of the connections that account is involved in.
 
-28. **When we query for transactions 2 hops away from 934, 387, or 135, we see that their patterns are similar**. Let's add a highlight to see these accounts by giving them a 'star' icon. You can also right-click on them to check their account ids.
+28. **When we query for transactions 2 hops away from 934, 387, or 135, we see that their patterns are similar**. Add a highlight to see matching accounts with a star. Graph Studio applies these styles by account name, so a star appears only when a rule matches a returned vertex. In this reservation, two saved name rules match; the third rule for ANTONIA MCLACHLAN matches no returned vertex, so the live graph shows two stars. Other reservations can show a different number. You can right-click vertices to check their account IDs.
 
     ```
     <copy>
     %pgql-pgx
-    FROM graph_table (BANK_GRAPH 
-        MATCH (a)-[e1]->(m)-[e2]->(d) 
+    FROM graph_table (BANK_GRAPH
+        MATCH (a)-[e1]->(m)-[e2]->(d)
         WHERE a.id in (934, 387, 135)
-        COLUMNS (vertex_id(a) as a_id, edge_id(e1) as e1_id, vertex_id(m) as m_id, edge_id(e2) as e2_id, vertex_id(d) as d_id ) 
-    ) 
+        COLUMNS (vertex_id(a) as a_id, edge_id(e1) as e1_id, vertex_id(m) as m_id, edge_id(e2) as e2_id, vertex_id(d) as d_id )
+    )
     </copy>
     ```
-    
-    ​![visualize 2 hops](images/2-hops.png) 
+
+    ​![Two-hop graph view showing the two account-name highlight rules that match this reservation](images/2-hops.png)
 
 You have now completed this lab.
 
@@ -529,4 +530,4 @@ You have now completed this lab.
 
 - **Author** - Kaylien Phan, Thea Lazarova, William Masdon
 - **Contributors** - Melliyal Annamalai, Jayant Sharma, Ramu Murakami Gutierrez, Rahul Tasker, Renée Wikestad
-- **Last Updated By/Date** - Denise Myrick, October 2025
+- **Last Updated By/Date** - Denise Myrick, October 2026

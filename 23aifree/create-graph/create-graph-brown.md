@@ -6,7 +6,7 @@ You will be creating an Operational Property Graph inside of Graph Studio, one o
 
 Estimated Time: 10 minutes
 
-### Objective
+### Objectives
 
 In this lab, you will:
 
@@ -59,73 +59,66 @@ You begin by loading data for bank accounts and bank transfers from CSV files.
 
 2. In Database Actions, click the main hamburger icon at the top left, and then select SQL.
 
- ![Prepare graph data](images/launch-sql.png)
+    ![Prepare graph data](images/launch-sql.png)
 
 3. Click Data Load in the top right corner
 
- ![Load graph data](images/data-load-sql.png)
+    ![Load graph data](images/data-load-sql.png)
 
 4. Drag and drop the 2 .csv files (bank_accounts.csv and bank_transfers.csv) into the data load page.
 
- ![Load graph data](images/data-load-empty.png)
+    ![Load graph data](images/data-load-empty.png)
 
 5. Click Upload
 
- ![Load graph data](images/data-load-upload.png)
+    ![Load graph data](images/data-load-upload.png)
 
 6. Then click Close
 
- ![Load graph data](images/data-load-close.png)
+    ![Load graph data](images/data-load-close.png)
 
 7. Copy and paste the contents of the file CreateKeys.sql into the worksheet. Click **Run Script**.
 
- ![Prepare graph data](images/create-keys-1.png)
+    ![Prepare graph data](images/create-keys-1.png)
 
 ## Task 3: Create the Property Graph
 
-1. Launch Graph Studio. In Database actions, click on the hamburger icon at the top left and then click **Graph Studio**.
+1. Launch Graph Studio. In Database Actions, click the hamburger icon at the top left and then click **Graph Studio**.
 
-    ![Clicking for login info in LiveLabs](images/launch-graph-studio.png)
+    ![Launch Graph Studio from Database Actions](images/launch-graph-studio.png)
 
-2. Sign into Graph Studio.
+2. Sign into Graph Studio as `graphuser` with the reservation's GraphUser password.
 
     ![Signing into Graph Studio](images/graph-studio-login.png)
 
-3. Click the **Graph** icon to navigate to create your graph.  
-    Then click **Create Graph**.  
-   
-    ![Shows where the create button modeler is](images/graph-create-button-v1.png " ")  
+3. Open **Navigation** and choose **Modeler**.
+4. In **Settings**, turn off **Auto-name New Graphs** if it is on. This lets you use the name required by the next lab.
+5. Click **New Graph**.
+6. Double-click the `UNTITLED` graph tab, enter `bank_graph`, and press Enter. Graph Studio displays the name as `BANK_GRAPH`.
+7. Click **Generate from Foreign Keys**.
+8. Under `GRAPHUSER`, select only `BANK_ACCOUNTS` and `BANK_TRANSFERS`, then click **Generate**.
+9. Confirm the model shows one vertex table, `BANK_ACCOUNTS`, and one edge table, `BANK_TRANSFERS`.
+10. Click **Create Graph** once. Wait until the graph is ready; the button changes to **Update Graph**.
 
-4. Enter `bank_graph` as the graph name, then click **Next**. The description is optional.
-    That graph name is used throughout the next lab. **Do not enter a different name** because then the queries and code snippets in the next lab will fail.
-    
-    ![Shows the create graph window where you assign the graph a name](./images/create-graph-dialog.png " ")
+    ![Graph Studio Modeler showing BANK_GRAPH with one vertex and one edge](images/graphstudio-modeler-bank-graph.jpg)
 
-5. Expand **GRAPHUSER** and select the `BANK_ACCOUNTS` and `BANK_TRANSFERS` tables.
+11. If you turned off **Auto-name New Graphs**, turn it back on in **Settings**.
+12. Open **Navigation**, choose **Graphs**, and confirm that `BANK_GRAPH` appears with owner `GRAPHUSER`.
 
-    ![Shows how to select the BANK_ACCOUNTS and BANK_TXNS](./images/select-tables-v2.png " ")
+    ![Graphs list showing BANK_GRAPH owned by GRAPHUSER](images/graphstudio-graphs-list.jpg)
 
-6. Move them to the right, that is, click the first icon on the shuttle control.   
+**Optional Graph Explorer verification:** Open **Navigation**, choose **Graph Explorer**, select `BANK_GRAPH`, and choose **SQL**. Run this query to confirm that Graph Explorer returns the top accounts by incoming transfers.
 
-    ![Shows the selected tables](./images/selected-tables-v2.png " ")
+    ```sql
+    SELECT acct_id, COUNT(1) AS Num_Transfers
+    FROM GRAPH_TABLE(BANK_GRAPH
+        MATCH (src)-[IS BANK_TRANSFERS]->(dst)
+        COLUMNS (dst.id AS acct_id)
+    )
+    GROUP BY acct_id ORDER BY Num_Transfers DESC FETCH FIRST 10 ROWS ONLY;
+    ```
 
-7. Click **Next**.  
-
-    The suggested graph has the `BANK_ACCOUNTS` as a vertex table since there are foreign key constraints specified on `BANK_TRANSFERS` that reference it.
-
-    And `BANK_TRANSFERS` is a suggested edge table. Click **Next**.
-
-    ![Shows the vertex and edge table](./images/create-graph-suggested-model-v1.png " ")
-
-8. In the Summary step, click on **Create Graph**. This will open a Create Graph tab, click on **Create Graph**.
-
-    ![Shows the job tab with the job status as successful](./images/jobs-create-graph-v1.png " ")  
-
-    This will open a Create Graph tab, click on **Create Graph**.
-
-    ![Shows in-memory enabled and the create graph button](./images/create-graph-in-memory.png " ")
-
-    The BANK_GRAPH is a view on the underlying tables and metadata, this means that no data is duplicated.
+    ![Graph Explorer showing transfer counts for BANK_GRAPH](images/graphstudio-graph-explorer-top-accounts.png)
 
 You may now proceed to the next lab.
 
@@ -137,4 +130,4 @@ You may now proceed to the next lab.
 
 * **Author** - Kaylien Phan, William Masdon
 * **Contributors** - David Start, Renée Wikestad
-* **Last Updated By/Date** - Denise Myrick, November 2025
+* **Last Updated By/Date** - Denise Myrick, October 2026
