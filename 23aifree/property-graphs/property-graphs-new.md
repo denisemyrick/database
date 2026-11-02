@@ -41,6 +41,8 @@ Watch the video below for a quick walk-through of the lab.
     ![Select the notebook to import and click on Import.](images/task3step2-v1.png " ")
 
     A dialog pops up named **Compute Environment**. It will disappear when the compute environment finishes attaching, usually in less than one minute. Or you can click **Close** to close the dialog and start working on your environment. Note that you will not be able to run any paragraph until the environment finishes attaching.
+
+    ![Compute Environment dialog while the environment attaches](images/notebook-compute-environment.png " ")
 ​
 ## Task 2: Query bank_graph
 ​
@@ -79,7 +81,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     </copy>
     ```
 
-    ![Most incoming transfers accounts](images/8-num-transfers.png)
+    ![Most incoming transfers accounts](images/notebook-top10-incoming.png)
 ​
     We see that accounts **387** and **934** have a high number of incoming transactions.
 
@@ -234,7 +236,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     </copy>
     ```
 ​
-   ​ ![Querying if account 39 had any 4-hop circular payment chains](images/17-num-4hop-cycles.png " ")
+   ​ ![Querying if account 39 had any 4-hop circular payment chains](images/notebook-acct39-4hop-before.png " ")
 
     **It has zero 4-hop circular payment chains**.
 ​
@@ -352,11 +354,11 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
 19. Let’s look at the **circular transfers that originate and terminate at Russell Rivera's account**, and visualize the results.
 
-    We start with the **of hops equals 4** as specified as []->{4}.
+    We start with the **nunber of hops equals 4** as specified as []->{4}.
 
     ```
     <copy>
-    %pgql-pgx
+    %sql
     SELECT *
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{4} (src)
@@ -375,7 +377,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    %pgql-pgx
+    %sql
     SELECT *
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{5} (src)
@@ -392,14 +394,9 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
 21. Let us continue our investigation using another algorithm, the PageRank graph analytics algorithm.
 
-    A %python-pgx paragraph let's you execute Python code snippets. **We will use the Python API to run the PageRank algorithm.**
-    The code snippet below creates a PgxGraph object containing a handle to the BANK_GRAPH loaded into the in-memory graph server.
-    Then it executes the PageRank algorithm using the built-in analyst Python object.
-    The session and analyst objects are created when the in-memory graph server is instantiated and when a notebook is opened.
-
     ```
     <copy>
-    %python-pgx
+    %sql
     graph = session.get_graph("BANK_GRAPH")
     analyst.pagerank(graph);
     </copy>
@@ -407,11 +404,11 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ​![running pagerank](images/run-pagerank.png)
 
-22. Now let's list the PageRank values in descending order to find the accounts with high PageRank values. **A high PageRank value indicates that that account is important**, which in the context of BANK_GRAPH, a high number of transfers have flown through that account, or the account is connected to accounts with a high number of transfers flowing through them.
+22. Now let's list the PageRank values in descending order to find the accounts with high PageRank values. **A high PageRank value indicates that that account is important**, which in the context of BANK_GRAPH, a high number of transfers have flowed through that account, or the account is connected to accounts with a high number of transfers flowing through them.
 
     ```
     <copy>
-    %pgql-pgx
+    %sql
     SELECT acct_id, acct_holder, pagerank
     FROM graph_table(bank_graph
     MATCH (a)
@@ -431,21 +428,22 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    %pgql-pgx
+    %sql
     SELECT *
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{3} (dst)
         WHERE src.name = 'ANTONIA MCLACHLAN'
         ONE ROW PER STEP ( v1, e1, v2 )
         COLUMNS (src.id AS acct_id, vertex_id(src) as src_id, vertex_id(v1) as v1_id, edge_id(e1) as e1_id, vertex_id(v2) as v2_id )
+    )
     </copy>
     ```
 
     ​![visualize 3 hop payment chain](images/3-hop-payment.png)
 
-    From this visualization we can quickly see **which accounts that are connected to Antonia Maclachlan also have a high PageRank value**.
+    From this visualization we can quickly see **which accounts that are connected to Antonia Mclachlan also have a high PageRank value**.
 
-24. So far, we used the knowledge that a highly connected account might be fraudulent, or when money moves in a cycle then there is potential fraud. What if we did **not know this about this specific domain**, that cycles might indicate fraud? What if we only new that accounts 934 and 387 are fraudulent, but did not have the additional information on what patterns might constitute fraud?
+24. So far, we used the knowledge that a highly connected account might be fraudulent, or when money moves in a cycle then there is potential fraud. What if we did **not know this about this specific domain**, that cycles might indicate fraud? What if we only knew that accounts 934 and 387 are fraudulent, but did not have the additional information on what patterns might constitute fraud?
 
     We can use a **Graph Machine Learning** algorithm like **DeepWalk** to find accounts that have a similar structure to an account. We don't know what structure we are looking for, we are looking for any structure that is similar. That is the power of machine learning - **you can find similarities even if you don't know exactly what are you are looking for.**
 
@@ -487,7 +485,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     </copy>
     ```
 
-    ​![running deepwalk for account 934](images/deepwalk934.png)
+    ​![running deepwalk for account 934](images/notebook-deepwalk-similar-934.png)
 
 27. Now we will take look at **similar nodes to account 387** with respect to transfer patterns.
 
@@ -508,8 +506,8 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-    %pgql-pgx
-    FROM graph_table (BANK_GRAPH
+    %sql
+    SELECT * FROM graph_table (BANK_GRAPH
         MATCH (a)-[e1]->(m)-[e2]->(d)
         WHERE a.id in (934, 387, 135)
         COLUMNS (vertex_id(a) as a_id, edge_id(e1) as e1_id, vertex_id(m) as m_id, edge_id(e2) as e2_id, vertex_id(d) as d_id )
@@ -517,7 +515,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
     </copy>
     ```
 
-    ​![Two-hop graph view showing the two account-name highlight rules that match this reservation](images/2-hops.png)
+    ​![Two-hop graph view showing the two account-name highlight rules that match this reservation](images/notebook-2hop-highlight-stars.png)
 
 You have now completed this lab.
 

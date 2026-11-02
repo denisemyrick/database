@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In this lab you will view the queries created the graph (that is, `bank_graph`) in APEX.
+In this lab you will view queries on the graph (that is, `bank_graph`) in APEX.
 
 Estimated Time: 10 minutes.
 
@@ -21,16 +21,16 @@ Learn how to:
 
 This lab assumes:
 
-- The graph user and graph bank_graph exists
+- The graph user and graph bank_graph exist
 - Access to Oracle APEX
 
 ## Task 1: Login and create APEX workspace
 
-1. Go back to LiveLabs and click on View Login Details, and then APEX URL to open your APEX workspace in a new tab.
+1. Go back to LiveLabs and click on View Login Info, and then APEX URL to open your APEX workspace in a new tab.
 
     ![Retrieving APEX URL from login details](images/apex-url-v1.png)
 
-2. Fill out your password with your ATP Admin Password that's underneath your Terraform Values in your Login Details.
+2. Fill out your password with your Admin Password that's underneath your Environment Details in your Login Details.
 
     ![URL login screen](images/2-login.png)
 
@@ -66,7 +66,7 @@ This lab assumes:
 
     ![Sign out from admin](images/logout-v1.png)
 
-2.  Log back in as the admin info you just created along with the workspace name as GRAPHUSER and username as graph.
+2.  Log back in with the workspace name as GRAPHUSER and username as graph.
 
     ![log back in](images/login-workspace.png)
 
@@ -92,7 +92,7 @@ This lab assumes:
 
 8.  Click Run Application.
 
-    ![Run the application](images/supporting-obj.png)
+    ![Run the application](images/apex-supporting-objects-installed.png)
 
 9.  Login with your graph user and the password.
 
@@ -101,27 +101,31 @@ This lab assumes:
     ![Log back in](images/login-app-v2.png)
 
 10. Click Property Graph queries with SQL box.
-    ![Property graph queries selection](images/homepage-v1.png)
+    ![Property graph queries selection](images/apex-app-home.png)
     
-11. Scroll through output to see the queries that you had ran in the prior lab visualized.
-    ![Final scroll through the output](images/query-page-v1.png)
+11. Scroll through output to see the queries that you ran in the prior lab visualized.
+    ![Property Graph queries with SQL page showing top accounts](images/apex-sql-queries-top10.png)
+
+    ![Circular payment chain counts on the queries page](images/apex-sql-queries-cycles.png)
 
 12. Click the hamburger menu in the upper left corner of the application and click "Using the Graph Visualization Plugin".
 
-    ![Hamburger menu options](images/menu-v1.png)
+    ![Hamburger menu options](images/apex-graphviz-menu-2hop.png)
 
-13. Scroll through the output to see the Graph Viz plugin utilized.
-    ![Graph viz](images/graph-viz-page-v1.png)
+13. Scroll through the output to see the Graph Vizualization plugin utilized.
+    ![Graph visualization of 4-hop chains](images/apex-graphviz-4hop.png)
+
+    ![Graph visualization of 6-hop chains from account 39](images/apex-graphviz-6hop.png)
 
 14. You have now completed this lab.
 
 ## Learn More
 
 - [Oracle Property Graph](https://docs.oracle.com/en/database/oracle/property-graph/index.html)
-- [Graph Developer's Guide for Property Graph - SQL DDL Statements for Property Graphs](https://docs.oracle.com/en/database/oracle/property-graph/25.4/spgdg/sql-ddl-statements-property-graphs.html)
+- [Graph Developer's Guide for Property Graph - SQL DDL Statements for Property Graphs](https://docs.oracle.com/en/database/oracle/property-graph/26.4/spgdg/sql-ddl-statements-property-graphs.html)
 
 ## Acknowledgements
 
 - **Author** - Kaylien Phan, Thea Lazarova, William Masdon
 - **Contributors** - Melliyal Annamalai, Jayant Sharma, Ramu Murakami Gutierrez, Rahul Tasker, Renée Wikestad
-- **Last Updated By/Date** - Denise Myrick, November 2025
+- **Last Updated By/Date** - Denise Myrick, November 2026
