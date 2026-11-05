@@ -100,28 +100,30 @@ This lab assumes:
 
     ![Run the application](images/apex-supporting-objects-installed-v2.png)
 
-10.  Login with your graph user and the password.
+10. Login with your graph user and the password.
 
-    **NOTE:** graph is case-sensitive.
-
+    >**NOTE:** graph is case-sensitive.
     ![Log back in](images/login-app-v2.png)
 
-11. Click Property Graph queries with SQL box.
-    ![Property graph queries selection](images/apex-app-home.png)
+11. Click the Property Graph queries with SQL box.
+
+    ![Property graph queries selection](images/apex-app-home-v2.png)
     
 12. Scroll through output to see the queries that you ran in the prior lab visualized.
-    ![Property Graph queries with SQL page showing top accounts](images/apex-sql-queries-top10.png)
 
-    ![Circular payment chain counts on the queries page](images/apex-sql-queries-cycles.png)
+    ![Property Graph queries with SQL page showing top accounts](images/apex-sql-queries-top10-v2.png)
+
+    ![Circular payment chain counts on the queries page](images/apex-sql-queries-cycles-v2.png)
 
 13. Click the hamburger menu in the upper left corner of the application and click "Using the Graph Visualization Plugin".
 
-    ![Hamburger menu options](images/apex-graphviz-menu-2hop.png)
+    ![Hamburger menu options](images/apex-graphviz-menu-2hop-v2.png)
 
 14. Scroll through the output to see the Graph Vizualization plugin utilized.
-    ![Graph visualization of 4-hop chains](images/apex-graphviz-4hop.png)
 
-    ![Graph visualization of 6-hop chains from account 39](images/apex-graphviz-6hop.png)
+    ![Graph visualization of 4-hop chains](images/apex-graphviz-4hop-v2.png)
+
+    ![Graph visualization of 6-hop chains from account 39](images/apex-graphviz-6hop-v2.png)
 
 15. You have now completed this lab.
 

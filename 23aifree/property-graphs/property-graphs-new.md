@@ -3,7 +3,7 @@
 ## Introduction
 
 In this lab you will query the newly created graph (`bank_graph`) using SQL/PGQ, an extension in SQL:2023.
-​
+
 Estimated Time: 30 minutes.
 ​
 ### Objectives
@@ -76,6 +76,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT acct_id, COUNT(1) AS Num_Transfers
     FROM graph_table ( BANK_GRAPH
         MATCH (src) - [IS BANK_TRANSFERS] -> (dst)
@@ -92,6 +93,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT acct_id, COUNT(1) AS Num_In_Middle
     FROM graph_table ( BANK_GRAPH
         MATCH (src) - [IS BANK_TRANSFERS] -> (via) - [IS BANK_TRANSFERS] -> (dst)
@@ -106,6 +108,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT account_id1, account_id2
     FROM graph_table(BANK_GRAPH
         MATCH (v1)-[IS BANK_TRANSFERS]->{1,3}(v2)
@@ -123,6 +126,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT acct_id, COUNT(1) AS Num_Triangles
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{3} (src)
@@ -137,6 +141,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT acct_id, COUNT(1) AS Num_4hop_Chains
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{4} (src)
@@ -153,7 +158,8 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
-   SELECT acct_id, COUNT(1) AS Num_5hop_Chains
+    %sql
+    SELECT acct_id, COUNT(1) AS Num_5hop_Chains
     FROM graph_table (BANK_GRAPH
         MATCH (src) - []->{5} (src)
         COLUMNS (src.id AS acct_id)
@@ -167,6 +173,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT DISTINCT(account_id)
     FROM GRAPH_TABLE(BANK_GRAPH
        MATCH (v1)-[IS BANK_TRANSFERS]->{3,5}(v1)
@@ -181,6 +188,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT DISTINCT(account_id), COUNT(1) AS Num_Cycles
     FROM graph_table(BANK_GRAPH
         MATCH (v1)-[IS BANK_TRANSFERS]->{3, 5}(v1)
@@ -199,6 +207,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     INSERT INTO bank_transfers VALUES
     (5002, 39, 934, null, 1000),
     (5003, 39, 135, null, 1000),
@@ -215,6 +224,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT acct_id, count(1) AS Num_Transfers
     FROM GRAPH_TABLE ( bank_graph
     MATCH (src) - [is BANK_TRANSFERS] -> (dst)
@@ -231,6 +241,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT count(1) Num_4Hop_Cycles
     FROM graph_table(bank_graph
     MATCH (s)-[]->{4}(s)
@@ -249,6 +260,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     INSERT INTO bank_transfers VALUES
     (5008, 559, 39, null, 1000),
     (5009, 982, 39, null, 1000),
@@ -262,6 +274,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT count(1) Num_4Hop_Cycles
     FROM graph_table(bank_graph
     MATCH (s)-[]->{4}(s)
@@ -280,6 +293,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     SELECT s0, a1, a2, a3
     FROM graph_table(bank_graph
     MATCH (s)-[]->(a)-[]->(b)-[]->(c)
@@ -298,6 +312,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ```
     <copy>
+    %sql
     DELETE FROM bank_transfers
     WHERE txn_id IN (5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010);
     </copy>
@@ -425,7 +440,27 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
 22. So far, we used the knowledge that a highly connected account might be fraudulent, or when money moves in a cycle then there is potential fraud. What if we did **not know this about this specific domain**, that cycles might indicate fraud? What if we only knew that accounts 934 and 387 are fraudulent, but did not have the additional information on what patterns might constitute fraud?
 
-    We can use a **Graph Machine Learning** algorithm like **DeepWalk** to find accounts that have a similar structure to an account. We don't know what structure we are looking for, we are looking for any structure that is similar. That is the power of machine learning - **you can find similarities even if you don't know exactly what are you are looking for.**
+    Run the first %python-pgx paragraph, which uses the built-in session object to read the graph into memory from the database and creates a PgXGraph object that handles the loaded graph.
+
+    ```
+    <copy>
+    %python-pgx
+    GRAPH_NAME="BANK_GRAPH"
+    # try getting the graph from the in-memory graph server
+    graph = session.get_graph(GRAPH_NAME)
+    # if it does not exist read it into memory
+    if (graph == None) :
+        session.read_graph_by_name(GRAPH_NAME, "pg_sql")
+        print("Graph "+ GRAPH_NAME + " successfully loaded")
+       graph = session.get_graph(GRAPH_NAME)
+    else :
+       print("Graph '"+ GRAPH_NAME + "' already loaded")
+    </copy>
+    ```
+    ​![Load graph](images/load-graph.png)
+
+
+23. We can use a **Graph Machine Learning** algorithm like **DeepWalk** to find accounts that have a similar structure to an account. We don't know what structure we are looking for, we are looking for any structure that is similar. That is the power of machine learning - **you can find similarities even if you don't know exactly what are you are looking for.**
 
     ```
     <copy>
@@ -440,7 +475,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ​![running deepwalk](images/deepwalk.png)
 
-23. Now we will **train the DeepWalk model**. Run the following paragraph.
+24. Now we will **train the DeepWalk model**. Run the following paragraph.
 
     ```
     <copy>
@@ -454,7 +489,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ​![training deepwalk model](images/train-deepwalk.png)
 
-24. Let's get the **most similar nodes to account 934** with respect to transfer patterns.
+25. Let's get the **most similar nodes to account 934** with respect to transfer patterns.
 
     ```
     <copy>
@@ -467,7 +502,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     ​![running deepwalk for account 934](images/notebook-deepwalk-similar-934.png)
 
-25. Now we will take look at **similar nodes to account 387** with respect to transfer patterns.
+26. Now we will take look at **similar nodes to account 387** with respect to transfer patterns.
 
     ```
     <copy>
@@ -482,7 +517,7 @@ A common query in analyzing money flows is to see if there is a sequence of tran
 
     We see that 135 shows up as the account closest to 934 and 387, in terms of the patterns of the connections that account is involved in.
 
-26. **When we query for transactions 2 hops away from 934, 387, or 135, we see that their patterns are similar**. Add a highlight to see matching accounts with a star. Graph Studio applies these styles by account name, so a star appears only when a rule matches a returned vertex. In this reservation, two saved name rules match; the third rule for ANTONIA MCLACHLAN matches no returned vertex, so the live graph shows two stars. Other reservations can show a different number. You can right-click vertices to check their account IDs.
+27. **When we query for transactions 2 hops away from 934, 387, or 135, we see that their patterns are similar**. Add a highlight to see matching accounts with a star. Graph Studio applies these styles by account name, so a star appears only when a rule matches a returned vertex. In this reservation, two saved name rules match; the third rule for ANTONIA MCLACHLAN matches no returned vertex, so the live graph shows two stars. Other reservations can show a different number. You can right-click vertices to check their account IDs.
 
     ```
     <copy>
