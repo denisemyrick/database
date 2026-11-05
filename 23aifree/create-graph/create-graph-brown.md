@@ -83,42 +83,51 @@ You begin by loading data for bank accounts and bank transfers from CSV files.
 
 ## Task 3: Create the Property Graph
 
-1. Launch Graph Studio. In Database Actions, click the hamburger icon at the top left and then click **Graph Studio**.
+1. Click **View Login Info** on your LiveLabs reservation.
 
-    ![Launch Graph Studio from Database Actions](images/launch-graph-studio.png)
+    ![Clicking for login info in LiveLabs](images/view-login-info.png)
 
-2. Sign into Graph Studio as `graphuser` with the reservation's GraphUser password.
+2. Under **Environment Details**, click the Graph Studio URL.
 
-    ![Signing into Graph Studio](images/graph-studio-login.png)
+    ![Locating the Graph Studio URL](images/graph-studio-url-v3.png)
 
-3. Open **Navigation** and choose **Modeler**.
-4. In **Settings**, turn off **Auto-name New Graphs** if it is on. This lets you use the name required by the next lab.
-5. Click **New Graph**.
-6. Double-click the `UNTITLED` graph tab, enter `bank_graph`, and press Enter. Graph Studio displays the name as `BANK_GRAPH`.
-7. Click **Generate from Foreign Keys**.
-8. Under `GRAPHUSER`, select only `BANK_ACCOUNTS` and `BANK_TRANSFERS`, then click **Generate**.
-9. Confirm the model shows one vertex table, `BANK_ACCOUNTS`, and one edge table, `BANK_TRANSFERS`.
-10. Click **Create Graph** once. Wait until the graph is ready; the button changes to **Update Graph**.
+3. Sign into Graph Studio as `graphuser` with the reservation's graphuser password.
 
-    ![Graph Studio Modeler showing BANK_GRAPH with one vertex and one edge](images/graphstudio-modeler-bank-graph.jpg)
+    ![Signing into Graph Studio](images/graph-studio-login-v2.png)
 
-11. If you turned off **Auto-name New Graphs**, turn it back on in **Settings**.
+4. Open **Navigation** and choose **Modeler**.
+
+    ![Choose Modeler](images/modeler.png)
+
+5. In **Settings**, turn off **Auto-name New Graphs** if it is on. This lets you use the name required by the next lab.
+
+    ![Modeler Settings panel with the Auto-name New Graphs toggle](images/modeler-settings-autoname.png)
+
+6. Click **New Graph**.
+
+7. The graph tab, `UNTITLED`, is ready for input so enter `bank_graph`, and press **Enter**. Graph Studio displays the name as `BANK_GRAPH`.
+
+    ![Name the new graph](images/name-graph.png)
+
+8. Click **Generate from Foreign Keys**.
+
+    ![Generate from Foreign Keys](images/generate-keys.png)
+
+9. Under `GRAPHUSER`, select only `BANK_ACCOUNTS` and `BANK_TRANSFERS`, then click **Generate**.
+
+    ![Generate from Foreign Keys with BANK_ACCOUNTS and BANK_TRANSFERS selected](images/graphstudio-generate-foreign-keys.png)
+
+10. Confirm the model shows one vertex table, `BANK_ACCOUNTS`, and one edge table, `BANK_TRANSFERS`.
+
+    ![Generated model with one vertex table and one edge table](images/graphstudio-generated-model.png)
+
+11. Click **Create Graph** once. Wait until the graph is ready; the button changes to **Update Graph**.
+
+    ![Graph Studio Modeler showing BANK_GRAPH with one vertex and one edge](images/graphstudio-graph-created.png)
+
 12. Open **Navigation**, choose **Graphs**, and confirm that `BANK_GRAPH` appears with owner `GRAPHUSER`.
 
-    ![Graphs list showing BANK_GRAPH owned by GRAPHUSER](images/graphstudio-graphs-list.jpg)
-
-**Optional Graph Explorer verification:** Open **Navigation**, choose **Graph Explorer**, select `BANK_GRAPH`, and choose **SQL**. Run this query to confirm that Graph Explorer returns the top accounts by incoming transfers.
-
-    ```sql
-    SELECT acct_id, COUNT(1) AS Num_Transfers
-    FROM GRAPH_TABLE(BANK_GRAPH
-        MATCH (src)-[IS BANK_TRANSFERS]->(dst)
-        COLUMNS (dst.id AS acct_id)
-    )
-    GROUP BY acct_id ORDER BY Num_Transfers DESC FETCH FIRST 10 ROWS ONLY;
-    ```
-
-    ![Graph Explorer showing transfer counts for BANK_GRAPH](images/graphstudio-graph-explorer-top-accounts.png)
+    ![Graphs list showing BANK_GRAPH owned by GRAPHUSER](images/graphstudio-graphs-list-v2.png)
 
 You may now proceed to the next lab.
 
@@ -130,4 +139,4 @@ You may now proceed to the next lab.
 
 * **Author** - Kaylien Phan, William Masdon
 * **Contributors** - David Start, Renée Wikestad
-* **Last Updated By/Date** - Denise Myrick, October 2026
+* **Last Updated By/Date** - Denise Myrick, November 2026
